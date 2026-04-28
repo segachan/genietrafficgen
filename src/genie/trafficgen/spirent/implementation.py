@@ -442,6 +442,31 @@ class Spirent(TrafficGen):
 
     @BaseConnection.locked
     @isconnected
+    def export_results_as_db(self, local_filename='stc_results.db'):
+        '''Export results on Spirent as database file'''
+        log.info(banner("Exporting results on Spirent as database file"))
+
+        # Export results on Spirent
+        try:
+            remote_db = "stc_results_verify.db"
+            self.stc.perform(
+                'SaveResultCommand', 
+                DatabaseConnectionString=remote_db,
+                SaveDetailedResults=True,
+                OverwriteIfExist=True)
+            log.info("Exported results on device '{}' as database file '{}' on Spirent API server".format(self.device.name, remote_db))
+            self.stc.download(remote_db, save_as=local_filename)
+            return True
+        except Exception as e:
+            log.error(e)
+            raise GenieTgnError("Failed to export results on device '{}' as database file".\
+                                format(self.device.name)) from e
+        else:
+            log.info("Exported results on device '{}' as database file".\
+                    format(self.device.name))
+
+    @BaseConnection.locked
+    @isconnected
     def create_genie_statistics_view(self, view_create_interval=30, view_create_iteration=10, disable_tracking=False, disable_port_pair=False):
         '''Creates a custom View named "Genie" with the required stats data'''
         log.info(banner("Creating new custom Spirent traffic statistics view '{}'".format(GENIE_VIEW_NAME)))
